@@ -257,14 +257,14 @@ def _case_html(
       <div class="palette">{palette}</div>
     </section>
     <section class="compare">
-      <figure><img src="{_rel(input_preview, report_dir)}" alt="Input"><figcaption>Input</figcaption></figure>
-      <figure><img src="{_rel(t0_composite, report_dir)}" alt="T0"><figcaption>T0 layout preview</figcaption></figure>
-      <figure><img src="{_rel(t1_composite, report_dir)}" alt="T1"><figcaption>T1 glaze plausibility</figcaption></figure>
+      <figure><img src="{input_preview.name}" alt="Input"><figcaption>Input</figcaption></figure>
+      <figure><img src="{t0_composite.name}" alt="T0"><figcaption>T0 layout preview</figcaption></figure>
+      <figure><img src="{t1_composite.name}" alt="T1"><figcaption>T1 glaze plausibility</figcaption></figure>
     </section>
     <section>
       <h2>Cumulative Pulls</h2>
-      <figure><img src="{_rel(t0_contact, report_dir)}" alt="T0 contact"><figcaption>T0 cumulative states</figcaption></figure>
-      <figure><img src="{_rel(t1_contact, report_dir)}" alt="T1 contact"><figcaption>T1 cumulative states</figcaption></figure>
+      <figure><img src="{t0_contact.name}" alt="T0 contact"><figcaption>T0 cumulative states</figcaption></figure>
+      <figure><img src="{t1_contact.name}" alt="T1 contact"><figcaption>T1 cumulative states</figcaption></figure>
     </section>
     <section>
       <h2>Warnings</h2>

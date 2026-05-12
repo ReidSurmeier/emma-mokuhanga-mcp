@@ -1,0 +1,2 @@
+"""Geometry validation helpers."""
+

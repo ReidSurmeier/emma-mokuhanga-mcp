@@ -1,0 +1,39 @@
+[project]
+name = "emma-mokuhanga-mcp"
+version = "0.1.0"
+description = "Chat-first MCP planning tools for Emma-style mokuhanga woodblock print stacks."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.16.0",
+    "numpy>=2.0.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.8.0",
+]
+
+[project.scripts]
+emma-mokuhanga-mcp = "emma_mokuhanga.mcp_server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/emma_mokuhanga"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -31,3 +31,23 @@ uv run ruff check .
 uv run python -m emma_mokuhanga.mcp_server --smoke
 ```
 
+## Tailscale Web Report
+
+Generate the shared test-image report:
+
+```bash
+uv run python -m emma_mokuhanga.reporting \
+  --input-dir "$EMMA_TEST_IMAGES_DIR" \
+  --out reports/test-images
+```
+
+Serve the report and upload interface over Tailscale:
+
+```bash
+uv run python -m emma_mokuhanga.web_app \
+  --host 0.0.0.0 \
+  --port 8787 \
+  --report-dir reports/test-images
+```
+
+Open `http://<tailscale-ip>:8787/`.

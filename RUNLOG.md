@@ -33,3 +33,13 @@ Next:
 - Replace placeholder planning masks with image-derived masks.
 - Add plan persistence JSON and load-by-id MCP tools.
 - Add geometry export prototypes after the validator contract stabilizes.
+
+## 2026-05-12 Tailscale Report Interface
+
+Slice: report/web interface
+Goal: expose corpus results and image submission over the machine's Tailscale address.
+Implemented:
+- Batch HTML report generator for all files in `EMMA_TEST_IMAGES_DIR`.
+- Per-image pages with input preview, T0 composite, T1 composite, cumulative pull contact sheets, plan JSON, and analysis JSON.
+- Small stdlib HTTP server with `/reports/` static serving and `/upload` image submission.
+- CLI entrypoints: `emma-mokuhanga-report` and `emma-mokuhanga-web`.

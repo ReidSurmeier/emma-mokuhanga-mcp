@@ -19,6 +19,8 @@ dev = [
 
 [project.scripts]
 emma-mokuhanga-mcp = "emma_mokuhanga.mcp_server:main"
+emma-mokuhanga-report = "emma_mokuhanga.reporting:main"
+emma-mokuhanga-web = "emma_mokuhanga.web_app:main"
 
 [build-system]
 requires = ["hatchling"]

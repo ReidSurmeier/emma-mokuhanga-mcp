@@ -8,5 +8,5 @@ build/
 *.egg-info/
 .emma/
 exports/
+reports/
 RUNLOG.local.md
-

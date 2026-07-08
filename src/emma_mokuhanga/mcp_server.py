@@ -17,6 +17,7 @@ from emma_mokuhanga.tools.ingest import ingest_image
 from emma_mokuhanga.tools.pigments import list_pigments
 from emma_mokuhanga.tools.planning import generate_plan
 from emma_mokuhanga.tools.render import render_plan
+from emma_mokuhanga.tools.workflow import run_reconstruction_workflow
 
 
 def _jsonable(value: Any) -> Any:
@@ -103,6 +104,26 @@ def build_mcp_server() -> Any:
         """Validate basic SVG vector path hazards before CNC export."""
 
         return _jsonable(validate_svg_paths(paths))
+
+    @server.tool()
+    def run_reconstruction_workflow_tool(
+        input_path: str,
+        output_dir: str,
+        plate_count: int = 27,
+        max_side: int = 1024,
+        case_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Run the image-derived reconstruction baseline workflow."""
+
+        return _jsonable(
+            run_reconstruction_workflow(
+                input_path=input_path,
+                output_dir=output_dir,
+                plate_count=plate_count,
+                max_side=max_side,
+                case_id=case_id,
+            )
+        )
 
     return server
 

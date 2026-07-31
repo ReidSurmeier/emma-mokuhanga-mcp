@@ -15,6 +15,8 @@ from urllib.parse import unquote, urlparse
 
 from emma_mokuhanga.reporting import process_image
 
+DEFAULT_MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
 
 def _extract_upload(body: bytes, content_type: str) -> tuple[str, bytes]:
     match = re.search(r"boundary=(.+)", content_type)
@@ -25,7 +27,7 @@ def _extract_upload(body: bytes, content_type: str) -> tuple[str, bytes]:
         if b'name="image"' not in part or b"\r\n\r\n" not in part:
             continue
         headers, payload = part.split(b"\r\n\r\n", 1)
-        payload = payload.rstrip(b"\r\n-")
+        payload = payload.removesuffix(b"\r\n")
         filename_match = re.search(rb'filename="([^"]*)"', headers)
         filename = filename_match.group(1).decode("utf-8", "replace") if filename_match else "upload.png"
         if not payload:
@@ -34,7 +36,13 @@ def _extract_upload(body: bytes, content_type: str) -> tuple[str, bytes]:
     raise ValueError("no image field in upload")
 
 
-def make_handler(report_dir: Path) -> type[BaseHTTPRequestHandler]:
+def make_handler(
+    report_dir: Path,
+    *,
+    max_upload_bytes: int = DEFAULT_MAX_UPLOAD_BYTES,
+) -> type[BaseHTTPRequestHandler]:
+    if max_upload_bytes < 1:
+        raise ValueError("max_upload_bytes must be positive")
     report_dir = report_dir.resolve()
     upload_dir = report_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -60,6 +68,15 @@ def make_handler(report_dir: Path) -> type[BaseHTTPRequestHandler]:
                 return
             try:
                 length = int(self.headers.get("Content-Length", "0"))
+                if length < 1:
+                    self.send_error(HTTPStatus.LENGTH_REQUIRED, "positive Content-Length required")
+                    return
+                if length > max_upload_bytes:
+                    self.send_error(
+                        HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+                        f"upload exceeds {max_upload_bytes} bytes",
+                    )
+                    return
                 filename, payload = _extract_upload(
                     self.rfile.read(length),
                     self.headers.get("Content-Type", ""),
@@ -135,11 +152,27 @@ def _home_html(report_dir: Path) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Serve the mokuhanga report/upload UI.")
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Bind address. Use a specific tailnet address for remote review.",
+    )
     parser.add_argument("--port", type=int, default=8787)
     parser.add_argument("--report-dir", type=Path, default=Path("reports/test-images"))
+    parser.add_argument(
+        "--max-upload-mib",
+        type=int,
+        default=25,
+        help="Maximum request body size in MiB.",
+    )
     args = parser.parse_args(argv)
-    server = ThreadingHTTPServer((args.host, args.port), make_handler(args.report_dir))
+    if args.max_upload_mib < 1:
+        parser.error("--max-upload-mib must be positive")
+    max_upload_bytes = args.max_upload_mib * 1024 * 1024
+    server = ThreadingHTTPServer(
+        (args.host, args.port),
+        make_handler(args.report_dir, max_upload_bytes=max_upload_bytes),
+    )
     print(f"serving {args.report_dir} on http://{args.host}:{args.port}")
     server.serve_forever()
     return 0

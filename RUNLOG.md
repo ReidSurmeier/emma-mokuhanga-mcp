@@ -1,5 +1,9 @@
 # Run Log
 
+This is historical implementation evidence. Use `PROJECT.md` for current
+capability and deployment status; later safety changes supersede runtime
+defaults recorded below.
+
 ## 2026-05-12 Initial Build
 
 Slice: A/B

@@ -7,11 +7,22 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-DEFAULT_HOME = Path(os.environ.get("EMMA_HOME", Path.home() / ".emma-mokuhanga"))
-DEFAULT_TEST_IMAGES_DIR = os.environ.get(
-    "EMMA_TEST_IMAGES_DIR",
-    "/mnt/c/Users/reidsurmeier2/Books/printmaking/test images\uf028",
-)
+
+def default_home() -> Path:
+    """Return the runtime home without embedding a host-specific path."""
+
+    return Path(os.environ.get("EMMA_HOME", Path.home() / ".emma-mokuhanga"))
+
+
+def default_test_images_dir() -> Path:
+    """Return the optional corpus path, defaulting inside the runtime home."""
+
+    return Path(
+        os.environ.get(
+            "EMMA_TEST_IMAGES_DIR",
+            default_home() / "test-images",
+        )
+    )
 
 
 class BuildDefaults(BaseModel):
@@ -53,8 +64,8 @@ class A1Profile(BaseModel):
 class AppConfig(BaseModel):
     """Runtime configuration."""
 
-    home: Path = DEFAULT_HOME
-    test_images_dir: Path = Path(DEFAULT_TEST_IMAGES_DIR)
+    home: Path = Field(default_factory=default_home)
+    test_images_dir: Path = Field(default_factory=default_test_images_dir)
     defaults: BuildDefaults = Field(default_factory=BuildDefaults)
     a1_profile: A1Profile = Field(default_factory=A1Profile)
 
@@ -63,4 +74,3 @@ def get_config() -> AppConfig:
     """Load configuration from environment-backed defaults."""
 
     return AppConfig()
-

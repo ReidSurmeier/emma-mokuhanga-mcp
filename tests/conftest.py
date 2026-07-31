@@ -6,17 +6,12 @@ from pathlib import Path
 import pytest
 
 
-def _default_corpus() -> Path:
-    return Path("/mnt/c/Users/reidsurmeier2/Books/printmaking/test images\uf028")
-
-
 @pytest.fixture(scope="session")
 def test_images_dir() -> Path:
-    path = Path(os.environ.get("EMMA_TEST_IMAGES_DIR", _default_corpus()))
-    if not path.exists():
-        matches = list(Path("/mnt/c/Users/reidsurmeier2/Books/printmaking").glob("test images*"))
-        if matches:
-            path = matches[0]
+    configured = os.environ.get("EMMA_TEST_IMAGES_DIR")
+    if not configured:
+        pytest.skip("set EMMA_TEST_IMAGES_DIR to run external corpus tests")
+    path = Path(configured)
     if not path.exists():
         pytest.skip(f"external test image corpus not found: {path}")
     return path
@@ -57,4 +52,3 @@ def non_emma_image(image_files: list[Path]) -> Path:
         if "emma" not in name and "frankenthaler" not in name:
             return path
     return image_files[-1]
-

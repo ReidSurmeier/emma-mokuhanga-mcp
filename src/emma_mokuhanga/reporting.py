@@ -14,7 +14,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from emma_mokuhanga.config import DEFAULT_TEST_IMAGES_DIR
+from emma_mokuhanga.config import default_test_images_dir
 from emma_mokuhanga.contracts import ImageAnalysis, PrintPlan, ReferenceImage, RenderArtifact
 from emma_mokuhanga.tools.analysis import analyze_reference
 from emma_mokuhanga.tools.ingest import ingest_image
@@ -51,12 +51,32 @@ def image_files(input_dir: Path) -> list[Path]:
     )
 
 
-def _write_json(path: Path, value: object) -> None:
+def _public_json_value(value: object, report_dir: Path) -> object:
+    if isinstance(value, Path):
+        resolved = value.resolve()
+        try:
+            return resolved.relative_to(report_dir.resolve()).as_posix()
+        except ValueError:
+            return value.name
+    if isinstance(value, dict):
+        return {
+            key: _public_json_value(item, report_dir)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_public_json_value(item, report_dir) for item in value]
+    return value
+
+
+def _write_json(path: Path, value: object, report_dir: Path) -> None:
     if hasattr(value, "model_dump"):
-        payload = value.model_dump(mode="json")  # type: ignore[attr-defined]
+        payload = value.model_dump(mode="python")  # type: ignore[attr-defined]
     else:
         payload = value
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(_public_json_value(payload, report_dir), indent=2),
+        encoding="utf-8",
+    )
 
 
 def _copy(path: Path, destination: Path) -> Path:
@@ -121,11 +141,11 @@ def process_image(
     _contact_sheet(t0.cumulative_paths, t0_contact)
     _contact_sheet(t1.cumulative_paths, t1_contact)
 
-    _write_json(case_dir / "reference.json", reference)
-    _write_json(case_dir / "analysis.json", analysis)
-    _write_json(case_dir / "plan.json", plan)
-    _write_json(case_dir / "render_t0.json", t0)
-    _write_json(case_dir / "render_t1.json", t1)
+    _write_json(case_dir / "reference.json", reference, report_dir)
+    _write_json(case_dir / "analysis.json", analysis, report_dir)
+    _write_json(case_dir / "plan.json", plan, report_dir)
+    _write_json(case_dir / "render_t0.json", t0, report_dir)
+    _write_json(case_dir / "render_t1.json", t1, report_dir)
 
     page_path = case_dir / "index.html"
     page_path.write_text(
@@ -303,7 +323,7 @@ def _style() -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build HTML reports for mokuhanga plans.")
-    parser.add_argument("--input-dir", type=Path, default=Path(DEFAULT_TEST_IMAGES_DIR))
+    parser.add_argument("--input-dir", type=Path, default=default_test_images_dir())
     parser.add_argument("--out", type=Path, default=Path("reports/test-images"))
     args = parser.parse_args(argv)
     cases = build_report(args.input_dir, args.out)
